@@ -13,7 +13,7 @@ data$Ecosite <- as.factor(data$Ecosite)
 data$Natural.Subregion <- as.factor(data$NSRNAME)
 data$Site <- as.factor(data$Site)
 
-##Remove Open Water observations, plus swamp, alkali, and not treed for exploratory analyses, as these re not well defined by existing ecosite classifications
+##Remove Open Water observations, plus swamp, alkali, and not treed for exploratory analyses, as these are not well defined by existing ecosite classifications
 data1 <- subset(data, Nutrient.Regime !='Open Water'& Nutrient.Regime!= 'Alkali'& Nutrient.Regime!= 'Swamp'
                 & Nutrient.Regime!= 'Not Treed'& Moisture.Regime!="Swamp"& Moisture.Regime!="No Value Provided"&
                   Nutrient.Regime!="No Value Provided" & Nutrient.Regime!=" " & Moisture.Regime !=" ")
