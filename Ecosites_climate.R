@@ -2,10 +2,10 @@ library(terra)
 library(dplyr)
 library(randomForestSRC)
 
+##Input data file with site locations, moisture regime, and nutrient regime
+data <- read.csv('Site_Locations.csv')
 
-data <- read.csv('All_sites.csv')
-View(data)
-
+##Convert categorical variables to factors
 data$DataSource <- as.factor(data$DataSource)
 data$Nutrient.Regime <- as.factor(data$Nutrient.Regime)
 data$Moisture.Regime <- as.factor(data$Moisture.Regime)
@@ -13,39 +13,42 @@ data$Ecosite <- as.factor(data$Ecosite)
 data$Natural.Subregion <- as.factor(data$NSRNAME)
 data$Site <- as.factor(data$Site)
 
-##Remove Open Water observations, plus swamp, alkali, and not treed for exploratory analyses
+##Remove Open Water observations, plus swamp, alkali, and not treed for exploratory analyses, as these re not well defined by existing ecosite classifications
 data1 <- subset(data, Nutrient.Regime !='Open Water'& Nutrient.Regime!= 'Alkali'& Nutrient.Regime!= 'Swamp'
                 & Nutrient.Regime!= 'Not Treed'& Moisture.Regime!="Swamp"& Moisture.Regime!="No Value Provided"&
                   Nutrient.Regime!="No Value Provided" & Nutrient.Regime!=" " & Moisture.Regime !=" ")
 
 View(data1)
-# Load spatial and raster data only once
-NSR <- vect("W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/GIS/Natural_Sub_Regions_Alberta_2005_shapefile.shp") 
+
+# Load spatial and raster data
+##Replace with local file path
+NSR <- vect("pathway/Natural_Sub_Regions_Alberta_2005_shapefile.shp") 
 
 # Load raster layers
 raster_paths <- list(
-  mean_Clay = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/mean_Clay_0_60.tif",
-  mean_Sand = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/mean_Sand_0_60.tif",
-  mean_SOC = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/mean_SOC_0_60.tif",
-  DEM = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/DEM_100m.tif",
-  Slope = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/Slope.tif",
-  Aspect = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/Aspect.tif",
-  GG = "W:/EDM/CCVegMod4/Ashley_ecosites/Alberta_Ecosites/GreatGroups_10TM.tif",
-  cti = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/AB_cti.tif",
-  tpi = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/AB_tpi.tif",
-  pcurv = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/AB_pcurv.tif",
-  tcurv = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/AB_tcurv.tif",
-  tr = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/terrain_roughness_AB.tif",
-  MAT = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/MAT_AB.tif",
-  MAP = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/MAP_AB.tif",
-  pH = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/mean_pH_0_60.tif",
-  BD = "C:/Users/ahillman/OneDrive - NRCan RNCan/Alberta Ecosites/mean_BD_0_60.tif"
+  mean_Clay = "pathway/mean_Clay_0_60.tif",
+  mean_Sand = "pathway/mean_Sand_0_60.tif",
+  mean_SOC = "pathway/mean_SOC_0_60.tif",
+  DEM = "pathway/DEM_100m.tif",
+  Slope = "pathway/Slope.tif",
+  Aspect = "pathway/Aspect.tif",
+  GG = "pathway/GreatGroups_10TM.tif",
+  cti = "pathway/AB_cti.tif",
+  tpi = "pathway/AB_tpi.tif",
+  pcurv = "pathway/AB_pcurv.tif",
+  tcurv = "pathway/AB_tcurv.tif",
+  tr = "pathway/terrain_roughness_AB.tif",
+  MAT = "pathway/MAT_AB.tif",
+  MAP = "pathway/MAP_AB.tif",
+  pH = "pathway/mean_pH_0_60.tif",
+  BD = "pathway/mean_BD_0_60.tif"
 )
 
 rasters <- lapply(raster_paths, rast)
 
 
-# Helper function to assign numeric values
+# Helper function to assign numeric values to moisture and nutrient regimes.
+##Converts to continuous values for modelling
 assign_regime_values <- function(df) {
   df %>%
     mutate(Moist_num = case_when(
@@ -77,7 +80,7 @@ nsr_list <- unique(data1$NSRNAME)
 predictors <- c("Mean_Clay", "Mean_Sand", "Mean_SOC", "Elevation", "Roughness",
                 "MAT", "MAP", "Slope", "Aspect", "Soil_GG", "CTI", "TPI", "pcurv", "tcurv","pH","Bulk_Density")
 
-# Build formula safely
+# Build model formula
 formula_str <- paste("Multivar(Moist_num, Nut_num) ~", paste(predictors, collapse = " + "))
 rf_formula <- as.formula(formula_str)
 rf_formula
@@ -85,13 +88,13 @@ rf_formula
 # Create output directory if it doesn't exist
 dir.create("Ecosite_output", showWarnings = FALSE, recursive = TRUE)
 
-##Split data into chunks for processing memory
+##Split data into chunks for processing memory (may not need to do this but I needed to on my machine)
 
 NSR1 <- subset(data1, NSRNAME %in% c("Upper Boreal Highlands","Boreal Subarctic","Lower Boreal Highlands"))
 NSR2 <- subset(data1, NSRNAME %in% c("Northern Mixedwood","Kazan Uplands", "Peace River Parkland"))
 NSR3 <- subset(data1, NSRNAME %in% c("Foothills Parkland","Lower Foothills","Upper Foothills"))
 NSR4 <- subset(data1, NSRNAME %in% c("Alpine","Subalpine","Montane"))
-##NSR5 <- subset(data1, NSRNAME %in% c("Central Parkland","Dry Mixedgrass","Foothills Fescue","Mixedgrass","Northern Fescue"))
+##NSR5 <- subset(data1, NSRNAME %in% c("Central Parkland","Dry Mixedgrass","Foothills Fescue","Mixedgrass","Northern Fescue")) ##Revist these subregions when have more information
 
 # Combine into a list of subsets
 nsr_groups <- list(NSR1, NSR2, NSR3, NSR4)
@@ -105,7 +108,7 @@ for (nsr_set in nsr_groups) {
       
       # Subset and convert to spatial
       nsr_data <- subset(nsr_set, NSRNAME == nsr_name)
-      nsr_points <- vect(nsr_data, geom = c("Easting", "Northing"), crs = "EPSG:3400")
+      nsr_points <- vect(nsr_data, geom = c("Easting", "Northing"), crs = "EPSG:3400")##Alberta Forest 10TM
       nsr_shape <- NSR[NSR$NSRNAME == nsr_name]
       
       # Mask and trim rasters
@@ -190,8 +193,8 @@ for (nsr_set in nsr_groups) {
   }
 }
 
-##Improve memory for large subregions
-
+##Run largest subregions separately due to memory issues (you may not need to do this)
+                       
 NSR7 <- subset(data1, NSRNAME %in% c("Central Mixedwood"))
 NSR8 <- subset(data1, NSRNAME %in% c("Dry Mixedwood"))##Do one at a time or memory crashes
 
@@ -333,6 +336,9 @@ for (nsr_name in unique(NSR8$Natural.Subregion)) {
   })
 }
 
+
+
+##Code to combine multiple subregions and model together
 ##Combine Athabasca Plain and Peace-Athabasca Delta (only 9 points in Delta, no model predictions made)
 
 NSR9 <- subset(data1, NSRNAME %in% c("Athabasca Plain","Peace-Athabasca Delta"))
