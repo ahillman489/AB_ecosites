@@ -4,13 +4,11 @@ This repository contains the code for predictive ecosite mapping of Alberta. Mul
 
 Site locations for ABMI data within this repository use publically available coordinate data.
 
-This repository contains three main files:
+This repository contains two main files:
 
-Site_Locations.csv - datasheet containing site-level coordinates, moisture regime, and nutrient regime for all sample sites.
+Updated_Sites_Public.csv - datasheet containing site-level coordinates, moisture regime, and nutrient regime for all sample sites.
 
 Ecosites_continuous - code for models that convert classified moisture and nutrient regimes to continuous variables
-
-Ecosites_no_climate - code for models that do not contain climate data.
 
 Input rasters can be found here:
 https://drive.google.com/drive/folders/19L6JIxkNSqpMXXf1GasTzE5jAMkNWNeg?usp=drive_link
