@@ -8,7 +8,7 @@ This repository contains three main files:
 
 Site_Locations.csv - datasheet containing site-level coordinates, moisture regime, and nutrient regime for all sample sites.
 
-Ecosites_climate - code for models that contain climate data (Mean Annual Temperature and Mean Annual Precipitation)
+Ecosites_continuous - code for models that convert classified moisture and nutrient regimes to continuous variables
 
 Ecosites_no_climate - code for models that do not contain climate data.
 
