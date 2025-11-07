@@ -6,3 +6,6 @@
 .Rprofile
 data/spatial/**
 renv/**
+cache
+cache/**
+Ecosite_output/**
