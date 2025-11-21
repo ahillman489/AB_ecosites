@@ -4,6 +4,7 @@
 .Ruserdata
 .Rproj
 .Rprofile
+AB_ecosites.Rproj
 data/spatial/**
 renv/**
 cache
