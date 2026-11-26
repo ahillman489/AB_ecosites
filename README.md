@@ -11,6 +11,6 @@ Updated_Sites_Public.csv - datasheet containing site-level coordinates, moisture
 Ecosites_classification - code for multivariate random forest models predicting ecosites
 
 Input rasters can be found here:
-https://drive.google.com/drive/folders/19L6JIxkNSqpMXXf1GasTzE5jAMkNWNeg?usp=drive_link
+https://drive.google.com/drive/folders/17PEdrTcfxVRgMHPcVzN2KlKveEe-Fhas?usp=drive_link
 
 All scripts are written in R
